@@ -6,7 +6,6 @@ Conversor que pega um autômato finito não-determinístico estendido(AFNE ou ta
 Exemplo de input:
 
 1 2 3 ; // estados do AFNE
-
 0 1 ; // alfabeto reconhecido pelo automato
 
 // Cada linha representa uma transição.

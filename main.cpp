@@ -17,6 +17,21 @@
 #include <cstdio>
 using namespace std;
 
+/* Union-Find */
+vector<int> p; 
+
+void initUnionFind(int n) 
+{
+	p.clear();
+	p.resize(n);
+	for(int i = 0; i < n; i++) 
+		p[i] = i;
+}
+
+int Find(int a) { return p[a] == a ? a : p[a] = Find(p[a]); }
+
+void Union(int a, int b) { p[Find(a)] = Find(b); }
+
 void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais);
 
 int main()
@@ -104,6 +119,8 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_i
 	for(set<int>::iterator it = estados_iniciais.begin(); it != estados_iniciais.end(); it++)
 		nodes.push(*it);
 	
+	initUnionFind(automato.size());
+
 	while(!nodes.empty())
 	{
 		atual = nodes.front();
