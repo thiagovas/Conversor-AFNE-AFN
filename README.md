@@ -1,7 +1,7 @@
 Conversor-AFNE-AFN
 ==================
 
-Conversor que pega um autômato finito não-determinístico estendido(AFNE ou também conhecido como AFN-lambda) e transforma em um autômato finito não-determinístico(AFN).
+Conversor que pega um autômato finito não-determinístico estendido(AFNE) e transforma em um autômato finito não-determinístico(AFN).
 
 Exemplo de input:
 
