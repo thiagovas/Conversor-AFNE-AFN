@@ -113,6 +113,9 @@ int main()
 void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais)
 {
 	vector<bool> visited(automato.size(), false);
+	vector<vector<pair<int, string> > > newAutomato;
+	set<int> counter, newEstIniciais, newEstFinais;
+	map<int, int> mVertex;
 	queue<int> nodes;
 	int atual;
 
@@ -148,5 +151,32 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_i
 		}
 	}
 
+	for(int i = 0; i < automato.size(); i++)
+		counter.insert(Find(i));
+	atual = 0;
+	for(set<int>::iterator it = counter.begin(); it != counter.end(); it++)
+	{
+		mVertex.insert(make_pair(*it, atual++));
+		if(estados_iniciais.find(*it) != estados_iniciais.end())
+			newEstIniciais.insert(mVertex[*it]);
+		if(estados_finais.find(*it) != estados_finais.end())
+			newEstFinais.insert(mVertex[*it]);
+	}
+	newAutomato.resize(mVertex.size());
+
+	for(int i = 0; i < automato.size(); i++)
+		if(p[i] == i)
+		{
+			for(int j = 0; j < automato.size(); j++) if(Find(j) == i)
+			{
+				for(int k = 0; k < automato[j].size(); k++)
+					if(automato[j][k].second != "v")
+						newAutomato[mVertex[i]].push_back(make_pair(mVertex[Find(automato[j][k].first)], automato[j][k].second));
+			}
+		}
+	
+	automato = newAutomato;
+	estados_iniciais = newEstIniciais;
+	estados_finais = newEstFinais;	
 }
 
