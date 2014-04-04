@@ -32,7 +32,7 @@ int Find(int a) { return p[a] == a ? a : p[a] = Find(p[a]); }
 
 void Union(int a, int b) { p[Find(a)] = Find(b); }
 
-void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais);
+void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais);
 
 int main()
 {
@@ -50,7 +50,7 @@ int main()
 		cin >> input;
 		if(input == ";") break;
 
-		estados.push_back(atoi(input.c_str()));
+		estados.push_back(atoi(input.c_str())-1);
 	}
 
 	// Leitura do alfabeto
@@ -83,7 +83,7 @@ int main()
 		cin >> input;
 		if(input == ";") break;
 
-		estados_iniciais.insert(atoi(input.c_str()));
+		estados_iniciais.insert(atoi(input.c_str())-1);
 	}
 
 	// Leitura dos estados finais
@@ -92,10 +92,10 @@ int main()
 		cin >> input;
 		if(input == ";") break;
 
-		estados_finais.insert(atoi(input.c_str()));
+		estados_finais.insert(atoi(input.c_str())-1);
 	}
 	
-	// Leitura das palavras a serem veriicadas
+	// Leitura das palavras a serem verificadas
 	while(true)
 	{
 		cin >> input;
@@ -107,10 +107,29 @@ int main()
 	// Converte o AFNE para um AFN
 	converter(automato, estados_iniciais, estados_finais);
 	
+	
+	/*
+	for(vector<vector<pair<int, string> > >::iterator it = automato.begin(); it != automato.end(); it++)
+	{
+		for(vector<pair<int, string> >::iterator jt = it->begin(); jt != it->end(); jt++)
+		{
+			cout << it-automato.begin() << " " << jt->first << " " << jt->second << endl;
+		}
+	}
+	
+	cout << "\nEstados iniciais:\n";
+	for(set<int>::iterator it = estados_iniciais.begin(); it != estados_iniciais.end(); it++)
+		cout << *it << endl;
+	
+	cout << "\nEstados finais:\n";
+	for(set<int>::iterator it = estados_finais.begin(); it != estados_finais.end(); it++)
+		cout << *it << endl;
+	*/
+
 	return 0;
 }
 
-void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais)
+void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais)
 {
 	vector<bool> visited(automato.size(), false);
 	vector<vector<pair<int, string> > > newAutomato;
