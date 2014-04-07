@@ -43,7 +43,7 @@ string fromCharToString(char input);
 
 int main()
 {
-	ios::sync_with_stdio(false);
+	//ios::sync_with_stdio(false);
 	vector<vector<pair<int, string> > > automato;
 	set<int> estados_iniciais, estados_finais;
 	vector<int> alfabeto, estados;
@@ -127,26 +127,26 @@ int main()
 	cout << ";\n\n";
 	
 	
-	/*
-	 * Descomente para ver como ficou o automato depois da conversão
-	 *\/
 	for(vector<vector<pair<int, string> > >::iterator it = automato.begin(); it != automato.end(); it++)
-	{
 		for(vector<pair<int, string> >::iterator jt = it->begin(); jt != it->end(); jt++)
-		{
-			cout << it-automato.begin() << " " << jt->first << " " << jt->second << endl;
-		}
+			cout << it-automato.begin()+1 << " " << jt->first+1 << " " << jt->second << " ;\n";
+	cout << endl;
+	
+	for(set<int>::iterator it = estados_iniciais.begin(); it != estados_iniciais.end(); it++)
+		cout << *it+1 << " ";
+	cout << ";\n";
+
+	for(set<int>::iterator it = estados_finais.begin(); it != estados_finais.end(); it++)
+		cout << *it+1 << " ";
+	cout << ";\n\n";
+	
+	for(vector<string>::iterator it = palavras.begin(); it != palavras.end(); it++)
+	{
+		cout << *it;
+		if(checarPalavra(automato, estados_iniciais, estados_finais, *it)) cout << " Sim ;\n";
+		else cout << " Nao ;\n";
 	}
 	
-	cout << "\nEstados iniciais:\n";
-	for(set<int>::iterator it = estados_iniciais.begin(); it != estados_iniciais.end(); it++)
-		cout << *it << endl;
-	
-	cout << "\nEstados finais:\n";
-	for(set<int>::iterator it = estados_finais.begin(); it != estados_finais.end(); it++)
-		cout << *it << endl;
-	*/
-
 	return 0;
 }
 
@@ -167,7 +167,7 @@ bool checarPalavra(vector<vector<pair<int, string> > > &automato, set<int> &esta
 		atual = nodes.front();
 		nodes.pop();
 
-		if(atual.second == palavra.size()) return true;
+		if(atual.second == palavra.size() && estados_finais.find(atual.first) != estados_finais.end()) return true;
 
 		for(vector<pair<int, string> >::iterator it = automato[atual.first].begin(); it != automato[atual.first].end(); it++)
 			if(it->second[0] == palavra[atual.second])
@@ -177,22 +177,21 @@ bool checarPalavra(vector<vector<pair<int, string> > > &automato, set<int> &esta
 	return false;
 }
 
-// TODO: CONSERTAR ESTE METODO
 void EliminarTransEstendidas(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais)
 {
 	pair<int, string> temp;
-	for(vector<vector<pair<int, string> > >::iterator it = automato.begin(); it != automato.end(); it++)
+	for(unsigned int i = 0; i < automato.size(); i++)
 	{
-		for(vector<pair<int, string> >::iterator jt = it->begin(); jt != it->end(); jt++)
+		for(unsigned int j = 0; j < automato[i].size(); j++)
 		{
-			if(jt->second.size() == 1) continue;
+			if(automato[i][j].second.size() == 1) continue;
 			
-			temp = *jt;
-			it->erase(jt);
-			jt--;
+			temp = automato[i][j];
+			automato[i].erase(automato[i].begin()+j);
+			j--;
 			
 			string newtrans = fromCharToString(temp.second[0]);
-			it->push_back(make_pair(automato.size(), newtrans));
+			automato[i].push_back(make_pair(automato.size(), newtrans));
 			for(int i = 1; i < temp.second.size()-1; i++)
 			{
 				newtrans = fromCharToString(temp.second[i]);
@@ -240,8 +239,7 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_
 				if(estados_finais.find(it->first) != estados_finais.end())
 					estados_finais.insert(atual);
 				
-				Union(atual, it->first);
-				
+				Union(atual, it->first);				
 				nodes.push(it->first);
 			}
 		}
