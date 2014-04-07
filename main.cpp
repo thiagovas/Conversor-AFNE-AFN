@@ -27,12 +27,15 @@ void initUnionFind(int n)
 	for(int i = 0; i < n; i++) 
 		p[i] = i;
 }
-
 int Find(int a) { return p[a] == a ? a : p[a] = Find(p[a]); }
-
 void Union(int a, int b) { p[Find(a)] = Find(b); }
+/* End - Union-Find */
 
+// Método que converte um AFNE em um AFN
 void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais);
+
+// Função que checa se o automato aceita a palavra informada
+bool checarPalavra(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais, string palavra);
 
 int main()
 {
@@ -108,7 +111,22 @@ int main()
 	converter(automato, estados_iniciais, estados_finais);
 	
 	
+	/* Imprimindo o resultado */
+
+	// Imprimindo os estados
+	for(unsigned int i = 1; i <= automato.size(); i++)
+		cout << i << " ";
+	cout << ";\n\n";
+
+	// Imprimindo o alfabeto
+	for(vector<int>::iterator it = alfabeto.begin(); it != alfabeto.end(); it++)
+		cout << *it << " ";
+	cout << ";\n\n";
+	
+	
 	/*
+	 * Descomente para ver como ficou o automato depois da conversão
+	 *\/
 	for(vector<vector<pair<int, string> > >::iterator it = automato.begin(); it != automato.end(); it++)
 	{
 		for(vector<pair<int, string> >::iterator jt = it->begin(); jt != it->end(); jt++)
@@ -129,6 +147,46 @@ int main()
 	return 0;
 }
 
+// Função que checa se o automato aceita a palavra informada
+bool checarPalavra(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais, string palavra)
+{
+	// A fila guarda o estado e a posição da palavra em que este estado está. <estado, posicao>
+	queue<pair<int, int> > nodes;
+	pair<int, int> atual;
+
+	if(palavra.size() == 0) return false;
+
+	for(set<int>::iterator it = estados_iniciais.begin(); it != estados_iniciais.end(); it++)
+		nodes.push(make_pair(*it, 0));
+	
+	while(!nodes.empty())
+	{
+		atual = nodes.front();
+		nodes.pop();
+
+		if(atual.second == palavra.size()) return true;
+
+		for(vector<pair<int, string> >::iterator it = automato[atual.first].begin(); it != automato[atual.first].end(); it++)
+			if(it->second[0] == palavra[atual.second])
+				nodes.push(make_pair(it->first, atual.second+1));
+	}
+
+	return false;
+}
+
+void EliminarTransEstendidas(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais)
+{
+	for(vector<vector<pair<int, string> > >::iterator it = automato.begin(); it != automato.end(); it++)
+	{
+		for(vector<pair<int, string> >::iterator jt = it->begin(); jt != it->end(); jt++)
+		{
+			if(jt->second.size() == 1) continue;
+			
+			
+		}
+	}
+}
+
 void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais)
 {
 	vector<bool> visited(automato.size(), false);
@@ -143,6 +201,7 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_
 	
 	initUnionFind(automato.size());
 
+	// Alterando os estados iniciais e finais.
 	while(!nodes.empty())
 	{
 		atual = nodes.front();
@@ -152,6 +211,7 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_
 		visited[atual] = true;
 		for(vector<pair<int, string> >::iterator it = automato[atual].begin(); it != automato[atual].end(); it++)
 		{
+			// Se a transicao for lambda, os estados são unidos e se algum for final ou inicial entao os dois ficam como final ou inicial.
 			if(it->second == "v")
 			{
 				if(estados_iniciais.find(atual) != estados_iniciais.end())
@@ -183,19 +243,21 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_
 	}
 	newAutomato.resize(mVertex.size());
 
+	// Juntando as transicoes dos estados que foram unidos
 	for(int i = 0; i < automato.size(); i++)
 		if(p[i] == i)
 		{
 			for(int j = 0; j < automato.size(); j++) if(Find(j) == i)
 			{
-				for(int k = 0; k < automato[j].size(); k++)
+				for(unsigned int k = 0; k < automato[j].size(); k++)
 					if(automato[j][k].second != "v")
 						newAutomato[mVertex[i]].push_back(make_pair(mVertex[Find(automato[j][k].first)], automato[j][k].second));
 			}
 		}
-	
+	estados_iniciais = newEstIniciais;	
+	estados_finais = newEstFinais;
 	automato = newAutomato;
-	estados_iniciais = newEstIniciais;
-	estados_finais = newEstFinais;	
+
+	EliminarTransEstendidas(automato, estados_iniciais, estados_finais);
 }
 
