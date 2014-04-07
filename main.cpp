@@ -34,6 +34,8 @@ void Union(int a, int b) { p[Find(a)] = Find(b); }
 
 void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais);
 
+bool verificar(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais, vector<string> palavras);
+
 int main()
 {
 	ios::sync_with_stdio(false);
@@ -107,6 +109,13 @@ int main()
 	// Converte o AFNE para um AFN
 	converter(automato, estados_iniciais, estados_finais);
 	
+	for(vector<string>::iterator it = palavras.begin(); it != palavras.end(); it++)
+	{
+		if(verificar(automato, estados_iniciais, estados_finais, *it))
+		{
+			
+		}
+	}
 	return 0;
 }
 
@@ -180,3 +189,7 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_i
 	estados_finais = newEstFinais;	
 }
 
+bool verificar(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais, vector<string> palavras)
+{
+	return true;
+}
