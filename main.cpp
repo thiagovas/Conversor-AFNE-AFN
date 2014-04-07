@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cctype>
 #include <cstdio>
+#include <sstream>
 using namespace std;
 
 /* Union-Find */
@@ -36,6 +37,9 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_
 
 // Função que checa se o automato aceita a palavra informada
 bool checarPalavra(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais, string palavra);
+
+// Função básica que converte um char para o tipo string. Fiz ela só deixar o código mais enxuto
+string fromCharToString(char input);
 
 int main()
 {
@@ -116,7 +120,7 @@ int main()
 	// Imprimindo os estados
 	for(unsigned int i = 1; i <= automato.size(); i++)
 		cout << i << " ";
-	cout << ";\n\n";
+	cout << ";\n";
 
 	// Imprimindo o alfabeto
 	for(vector<int>::iterator it = alfabeto.begin(); it != alfabeto.end(); it++)
@@ -174,15 +178,29 @@ bool checarPalavra(vector<vector<pair<int, string> > > &automato, set<int> &esta
 	return false;
 }
 
+// TODO: CONSERTAR ESTE METODO
 void EliminarTransEstendidas(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais)
 {
+	pair<int, string> temp;
 	for(vector<vector<pair<int, string> > >::iterator it = automato.begin(); it != automato.end(); it++)
 	{
 		for(vector<pair<int, string> >::iterator jt = it->begin(); jt != it->end(); jt++)
 		{
 			if(jt->second.size() == 1) continue;
 			
+			temp = *jt;
+			it->erase(jt);
+			jt--;
 			
+			string newtrans = fromCharToString(temp.second[0]);
+			it->push_back(make_pair(automato.size(), newtrans));
+			for(int i = 1; i < temp.second.size()-1; i++)
+			{
+				newtrans = fromCharToString(temp.second[i]);
+				automato.push_back(vector<pair<int, string> >(1, make_pair(automato.size(), newtrans)));
+			}
+			newtrans = fromCharToString(temp.second[temp.second.size()-1]);
+			automato.push_back(vector<pair<int, string> >(1, make_pair(temp.first, newtrans)));
 		}
 	}
 }
@@ -261,3 +279,10 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_
 	EliminarTransEstendidas(automato, estados_iniciais, estados_finais);
 }
 
+// Função básica que converte um char para o tipo string. Fiz ela só deixar o código mais enxuto
+string fromCharToString(char input)
+{
+	stringstream ss;
+	ss << input;
+	return ss.str();
+}
