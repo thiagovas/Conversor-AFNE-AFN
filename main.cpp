@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cctype>
 #include <cstdio>
+#include <sstream>
 using namespace std;
 
 /* Union-Find */
@@ -27,14 +28,18 @@ void initUnionFind(int n)
 	for(int i = 0; i < n; i++) 
 		p[i] = i;
 }
-
 int Find(int a) { return p[a] == a ? a : p[a] = Find(p[a]); }
-
 void Union(int a, int b) { p[Find(a)] = Find(b); }
+/* End - Union-Find */
 
-void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais);
+// Método que converte um AFNE em um AFN
+void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais);
 
-bool verificar(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais, vector<string> palavras);
+// Função que checa se o automato aceita a palavra informada
+bool checarPalavra(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais, string palavra);
+
+// Função básica que converte um char para o tipo string. Fiz ela só deixar o código mais enxuto
+string fromCharToString(char input);
 
 int main()
 {
@@ -52,7 +57,7 @@ int main()
 		cin >> input;
 		if(input == ";") break;
 
-		estados.push_back(atoi(input.c_str()));
+		estados.push_back(atoi(input.c_str())-1);
 	}
 
 	// Leitura do alfabeto
@@ -85,7 +90,7 @@ int main()
 		cin >> input;
 		if(input == ";") break;
 
-		estados_iniciais.insert(atoi(input.c_str()));
+		estados_iniciais.insert(atoi(input.c_str())-1);
 	}
 
 	// Leitura dos estados finais
@@ -94,10 +99,10 @@ int main()
 		cin >> input;
 		if(input == ";") break;
 
-		estados_finais.insert(atoi(input.c_str()));
+		estados_finais.insert(atoi(input.c_str())-1);
 	}
 	
-	// Leitura das palavras a serem veriicadas
+	// Leitura das palavras a serem verificadas
 	while(true)
 	{
 		cin >> input;
@@ -109,17 +114,97 @@ int main()
 	// Converte o AFNE para um AFN
 	converter(automato, estados_iniciais, estados_finais);
 	
-	for(vector<string>::iterator it = palavras.begin(); it != palavras.end(); it++)
+	/* Imprimindo o resultado */
+
+	// Imprimindo os estados
+	for(unsigned int i = 1; i <= automato.size(); i++)
+		cout << i << " ";
+	cout << ";\n";
+
+	// Imprimindo o alfabeto
+	for(vector<int>::iterator it = alfabeto.begin(); it != alfabeto.end(); it++)
+		cout << *it << " ";
+	cout << ";\n\n";
+	
+	
+	/*
+	 * Descomente para ver como ficou o automato depois da conversão
+	 *\/
+	for(vector<vector<pair<int, string> > >::iterator it = automato.begin(); it != automato.end(); it++)
 	{
-		if(verificar(automato, estados_iniciais, estados_finais, *it))
+		for(vector<pair<int, string> >::iterator jt = it->begin(); jt != it->end(); jt++)
 		{
-			
+			cout << it-automato.begin() << " " << jt->first << " " << jt->second << endl;
 		}
 	}
+	
+	cout << "\nEstados iniciais:\n";
+	for(set<int>::iterator it = estados_iniciais.begin(); it != estados_iniciais.end(); it++)
+		cout << *it << endl;
+	
+	cout << "\nEstados finais:\n";
+	for(set<int>::iterator it = estados_finais.begin(); it != estados_finais.end(); it++)
+		cout << *it << endl;
+	*/
+
 	return 0;
 }
 
-void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais)
+// Função que checa se o automato aceita a palavra informada
+bool checarPalavra(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais, string palavra)
+{
+	// A fila guarda o estado e a posição da palavra em que este estado está. <estado, posicao>
+	queue<pair<int, int> > nodes;
+	pair<int, int> atual;
+
+	if(palavra.size() == 0) return false;
+
+	for(set<int>::iterator it = estados_iniciais.begin(); it != estados_iniciais.end(); it++)
+		nodes.push(make_pair(*it, 0));
+	
+	while(!nodes.empty())
+	{
+		atual = nodes.front();
+		nodes.pop();
+
+		if(atual.second == palavra.size()) return true;
+
+		for(vector<pair<int, string> >::iterator it = automato[atual.first].begin(); it != automato[atual.first].end(); it++)
+			if(it->second[0] == palavra[atual.second])
+				nodes.push(make_pair(it->first, atual.second+1));
+	}
+
+	return false;
+}
+
+// TODO: CONSERTAR ESTE METODO
+void EliminarTransEstendidas(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais)
+{
+	pair<int, string> temp;
+	for(vector<vector<pair<int, string> > >::iterator it = automato.begin(); it != automato.end(); it++)
+	{
+		for(vector<pair<int, string> >::iterator jt = it->begin(); jt != it->end(); jt++)
+		{
+			if(jt->second.size() == 1) continue;
+			
+			temp = *jt;
+			it->erase(jt);
+			jt--;
+			
+			string newtrans = fromCharToString(temp.second[0]);
+			it->push_back(make_pair(automato.size(), newtrans));
+			for(int i = 1; i < temp.second.size()-1; i++)
+			{
+				newtrans = fromCharToString(temp.second[i]);
+				automato.push_back(vector<pair<int, string> >(1, make_pair(automato.size(), newtrans)));
+			}
+			newtrans = fromCharToString(temp.second[temp.second.size()-1]);
+			automato.push_back(vector<pair<int, string> >(1, make_pair(temp.first, newtrans)));
+		}
+	}
+}
+
+void converter(vector<vector<pair<int, string> > > &automato, set<int> &estados_iniciais, set<int> &estados_finais)
 {
 	vector<bool> visited(automato.size(), false);
 	vector<vector<pair<int, string> > > newAutomato;
@@ -133,6 +218,7 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_i
 	
 	initUnionFind(automato.size());
 
+	// Alterando os estados iniciais e finais.
 	while(!nodes.empty())
 	{
 		atual = nodes.front();
@@ -142,6 +228,7 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_i
 		visited[atual] = true;
 		for(vector<pair<int, string> >::iterator it = automato[atual].begin(); it != automato[atual].end(); it++)
 		{
+			// Se a transicao for lambda, os estados são unidos e se algum for final ou inicial entao os dois ficam como final ou inicial.
 			if(it->second == "v")
 			{
 				if(estados_iniciais.find(atual) != estados_iniciais.end())
@@ -173,23 +260,28 @@ void converter(vector<vector<pair<int, string> > > &automato, set<int> estados_i
 	}
 	newAutomato.resize(mVertex.size());
 
+	// Juntando as transicoes dos estados que foram unidos
 	for(int i = 0; i < automato.size(); i++)
 		if(p[i] == i)
 		{
 			for(int j = 0; j < automato.size(); j++) if(Find(j) == i)
 			{
-				for(int k = 0; k < automato[j].size(); k++)
+				for(unsigned int k = 0; k < automato[j].size(); k++)
 					if(automato[j][k].second != "v")
 						newAutomato[mVertex[i]].push_back(make_pair(mVertex[Find(automato[j][k].first)], automato[j][k].second));
 			}
 		}
-	
+	estados_iniciais = newEstIniciais;	
+	estados_finais = newEstFinais;
 	automato = newAutomato;
-	estados_iniciais = newEstIniciais;
-	estados_finais = newEstFinais;	
+
+	EliminarTransEstendidas(automato, estados_iniciais, estados_finais);
 }
 
-bool verificar(vector<vector<pair<int, string> > > &automato, set<int> estados_iniciais, set<int> estados_finais, vector<string> palavras)
+// Função básica que converte um char para o tipo string. Fiz ela só deixar o código mais enxuto
+string fromCharToString(char input)
 {
-	return true;
+	stringstream ss;
+	ss << input;
+	return ss.str();
 }
